@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>study2</title>
+    <script src="js/three.js"></script>
+    <style>
+        div#canvas-frame{
+            border: none;
+            cursor: pointer ;
+            width: 600px;
+            height: 600px;
+            background-color: #EEEEEE;
+        }
+    </style>
+
+
+    <script>
+
+        var width,height;
+        var renderer;
+        function initThree(){
+            width = document.getElementById("canvas-frame").clientWidth;
+            height = document.getElementById("canvas-frame").clientHeight;
+            renderer = new THREE.WebGLRenderer({antialias:true});
+            renderer.setSize(width,height);
+            document.getElementById("canvas-frame").appendChild(renderer.domElement);
+            renderer.setClearColor(0xFFFFFF,1.0);
+            renderer.shadowMapEnabled = true;
+        }
+
+        var camera;
+        function initCamera(){
+            camera = new THREE.PerspectiveCamera(45, width/height ,1 ,10000);
+            camera.up.x = 0;
+            camera.up.y = 0;
+            camera.up.z = 1;
+            camera.position.set(500,0,100);
+        }
+
+        var scene;
+        function initScene(){
+            scene = new THREE.Scene();
+        }
+
+        var light,light2;
+        function initLight(){
+            light = new THREE.DirectionalLight(0xFFFFFF, 1.0 ,0);
+            light.position.set(20,20,1000);
+            light.castShadow = true;
+            scene.add(light);
+
+            light2 = new THREE.AmbientLight(0x777777);
+            scene.add(light2);
+        }
+
+        var plane;
+        function initObject(){
+            var yuka_n = 10, yuka_w = 50;
+            for(var i=-yuka_n;i<=yuka_n;i++){
+                for(var j= -yuka_n;j<=yuka_n;j++){
+                    if( (i+j)%2 ==0){
+                        var plane = new THREE.Mesh(
+                                new THREE.PlaneGeometry(yuka_w,yuka_w,1,1),
+                                new THREE.MeshLambertMaterial({color:0x999999,ambient:0x999999})
+                        );
+                    }
+                    else{
+                        var plane = new THREE.Mesh(
+                                new THREE.PlaneGeometry(yuka_w,yuka_w,1,1),
+                                new THREE.MeshLambertMaterial({color:0x4d4d4d,ambient:0x4d4d4d})
+                        );
+                    }
+
+                    plane.position.x = j*yuka_w;
+                    plane.position.y = i*yuka_w;
+                    plane.receiveShadow = true;
+                    scene.add(plane);
+                }
+            }
+        }
+
+        function loop(){
+            camera.lookAt({x:0,y:0,z:0});
+            renderer.clear();
+            renderer.render(scene,camera);
+            window.requestAnimationFrame(loop);
+
+        }
+
+        var down = false;
+        var sy =0 , sz = 0;
+        window.onmousedown = function(ev){
+            if(ev.target == renderer.domElement){
+                down = true;
+                sy = ev.clientX; sz = ev.clientY;
+            }
+        };
+        window.onmouseup = function(){
+            down = false;
+        }
+        window.onmousemove = function(ev){
+            var speed = 2;
+            if(down){
+                if(ev.target == renderer.domElement){
+                    var dy = - (ev.clientX - sy);
+                    var dz = - (ev.clientY - sz);
+                    camera.position.y += dy*speed;
+                    camera.position.z -= dz*speed;
+                    sy -= dy;
+                    sz -= dz;
+                }
+            }
+        }
+        window.onmousewheel = function(ev){
+            var speed = 0.2;
+            camera.position.x += ev.wheelDelta * speed;
+        }
+
+
+        function threeStart(){
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+            loop();
+        }
+
+
+    </script>
+</head>
+<body onload="threeStart();">
+
+<div id="canvas-frame"></div>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>study1</title>
+    <script src="js/three.js"></script>
+    <style>
+        div#canvas-frame{
+            border: none;
+            cursor: pointer ;
+            width: 600px;
+            height: 600px;
+            background-color: #EEEEEE;
+        }
+    </style>
+
+    <script>
+
+        var width,height,renderer;
+        function initThree(){
+            width = document.getElementById("canvas-frame").clientWidth;
+            height = document.getElementById("canvas-frame").clientHeight;
+            renderer = new THREE.WebGLRenderer({antialias:true});
+            renderer.setSize(width,height);
+            document.getElementById("canvas-frame").appendChild(renderer.domElement);
+            renderer.setClearColor(0xFFFFFF,1.0);
+            renderer.shadowMapEnabled = true;
+        }
+
+        var camera;
+        function initCamera(){
+            camera = new THREE.PerspectiveCamera(45, width/height , 1 , 10000);
+            camera.position.set(400,400,50);
+            camera.up.x = 0;
+            camera.up.y = 0;
+            camera.up.z = 1;
+            camera.lookAt({x:0,y:0,z:0});
+        }
+
+        var scene;
+        function initScene(){
+            scene = new THREE.Scene();
+        }
+
+        var light,light2;
+        function initLight(){
+            light = new THREE.DirectionalLight(0xFFFFFF, 1.0,0);
+            light.position.set(100,100,200);
+            scene.add(light);
+            light.castShadow = true;
+
+            light2 = new THREE.AmbientLight(0x555555);
+            scene.add(light2);
+        }
+
+        var cube = Array(),plane;
+        function initObject(){
+            for(var i=0;i<3;i++){
+                cube[i] = new THREE.Mesh(
+                        new THREE.CubeGeometry(50,50,50),
+                        new THREE.MeshLambertMaterial({color:0xFF0000, ambient:0xFF0000})
+                );
+                scene.add(cube[i]);
+                cube[i].castShadow = true;
+                cube[i].position.set(0,-100+100*i,0);
+            }
+
+            plane = new THREE.Mesh(
+                    new THREE.PlaneGeometry(400,400),
+                    new THREE.MeshLambertMaterial({color:0x999999, ambient:0x999999})
+            )
+            scene.add(plane);
+            plane.receiveShadow = true;
+            plane.position.set(0,0,-50);
+        }
+
+        var t=0;
+        function loop(){
+            t++;
+            cube[0].rotation.set(t/100,0 ,0);
+            cube[1].rotation.set(0,t/100,0);
+            cube[2].rotation.set(0,0,t/100);
+//            camera.position.set(400 * Math.cos(t/100), 400*Math.sin(t/200), 50);
+//            camera.lookAt({x:0,y:0,z:0});
+            renderer.clear();
+            renderer.render(scene,camera);
+            window.requestAnimationFrame(loop);
+        }
+
+        var down = false;
+        var sy = 0 ,sz = 0;
+        window.onmousedown = function(ev){
+            if(ev.target == renderer.domElement){
+                down = true;
+                sy = ev.clientX;
+                sz = ev.clientY;
+            }
+        };
+
+        window.onmouseup = function(){
+            down = false;
+        }
+
+        window.onmousemove = function(ev){
+            var speed =2;
+            if(down){
+                if(ev.target == renderer.domElement){
+                    var dy = -(ev.clientX-sy);
+                    var dz = -(ev.clientY-sz);
+                    camera.position.y += dy*speed;
+                    camera.position.z -= dz*speed;
+                    sy -= dy;
+                    sz -= dz;
+                }
+            }
+        }
+
+        window.onmousewheel =function(ev){
+            var speed = 2;
+            camera.position.x += ev.wheelDelta * speed;
+        }
+
+        function threeStart(){
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+            loop();
+        }
+
+    </script>
+</head>
+<body onload="threeStart();">
+
+    <div id="canvas-frame"></div>
+
+</body>
+</html>
