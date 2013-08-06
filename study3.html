@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>study3</title>
+    <script src="js/three.js"></script>
+    <style>
+        div#canvas-frame{
+            border: none;
+            cursor: pointer ;
+            width: 600px;
+            height: 600px;
+            background-color: #000;
+        }
+    </style>
+    <script>
+
+        var width,height;
+        var renderer;
+        function initThree(){
+            width = document.getElementById("canvas-frame").clientWidth;
+            height = document.getElementById("canvas-frame").clientHeight;
+            renderer = new THREE.WebGLRenderer();
+//            renderer = new THREE.CanvasRenderer();
+            renderer.setSize(width,height);
+
+            document.getElementById("canvas-frame").appendChild(renderer.domElement);
+//            renderer.setClearColor(0x000000,1.0);
+//            renderer.shadowMapEnabled = true;
+        }
+
+        var camera;
+        function initCamera(){
+            camera = new THREE.PerspectiveCamera(45, width/height ,1 ,10000);
+//            camera.up.x = 0;
+//            camera.up.y = 0;
+//            camera.up.z = 1;
+            camera.position.z = 300;
+//            scene.add(camera);
+        }
+
+        var scene;
+        function initScene(){
+            scene = new THREE.Scene();
+        }
+
+
+        var sphere;
+        var particaleCount = 1800,
+            particles,
+                pMaterial;
+        var PI2 = Math.PI * 2;
+        var program = function ( context ) {
+
+            context.beginPath();
+            context.arc( 0, 0, 1, 0, PI2, true );
+            context.fill();
+
+        }
+        var particleSystem;
+        function initObject(){
+//            sphere = new THREE.Mesh(
+//                    new THREE.SphereGeometry(50,16,16),
+//                    new THREE.MeshLambertMaterial({color:0x0000FF})
+//            )
+//            scene.add(sphere);
+
+            particles = new THREE.Geometry();
+            pMaterial = new THREE.ParticleBasicMaterial({
+                color: 0xFFFFFF,
+                size: 20,
+                map: THREE.ImageUtils.loadTexture(
+                        "assets/particle.png"
+                ),
+                blending: THREE.AdditiveBlending,
+                transparent: true
+            });
+
+            for(var i=0;i<particaleCount;i++){
+                var pX = Math.random() * 500 - 250,
+                        pY = Math.random() * 500 - 250,
+                        pZ = Math.random() * 500 - 250,
+                        particle = new THREE.Vertex(
+                                new THREE.Vector3(pX, pY, pZ)
+                        );
+                particle.velocity = new THREE.Vector3(0,-Math.random(),0);
+                // 将粒子加入粒子geometry
+                particles.vertices.push(particle);
+            }
+
+            particleSystem =
+                    new THREE.ParticleSystem(
+                            particles,
+                            pMaterial);
+// 将粒子系统加入场景
+            scene.add(particleSystem);
+        }
+
+        var pointLight;
+        function initLight(){
+            pointLight = new THREE.PointLight(0xFFFFFF);
+            pointLight.position.x = 10;
+            pointLight.position.y = 50;
+            pointLight.position.z = 130;
+            scene.add(pointLight);
+        }
+        var t = 0;
+        function loop(){
+            particleSystem.rotation.y += 0.01;
+            var pCount = particaleCount;
+            while(pCount--){
+                var particle =  particles.vertices[pCount];
+                if(particle.y < -200) {
+                    particle.y = 200;
+                    particle.y = 0;
+                }
+                particle.velocity.y -= Math.random() * .1;
+                particle.add(
+                        particle.velocity);
+
+            }
+            particleSystem.geometry.__dirtyVertices = true;
+            renderer.render(scene,camera);
+            window.requestAnimationFrame(loop);
+
+        }
+
+        function threeStart(){
+            initThree();
+            initScene();
+            initCamera();
+            initObject();
+            initLight();
+//            renderer.render(scene,camera);
+            loop();
+        }
+
+
+    </script>
+</head>
+<body onload="threeStart();">
+
+<div id="canvas-frame"></div>
+
+</body>
+</html>
